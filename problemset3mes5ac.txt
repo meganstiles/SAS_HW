@@ -1,0 +1,324 @@
+
+*Megan Stiles;
+
+filename Prob1 'C:\LocalData\PS3Prob1A.txt';
+filename Prob2 'C:\LocalData\PS3Prob2.txt';
+filename Prob3 'C:\LocalData\PS3Prob3.txt';
+libname rawdata 'C:\LocalData';
+
+Title Problem 1A;
+*6574.5 is the num of days in 18 years assuming 1 yr = 365.25 days;
+
+data answers;
+infile Prob1; 
+input subjID $1-7 gender $9 @11 dob mmddyy10. qA1 $22 qA2 $23 qA3 $24 qA4 $24 @27 qB1 dollar6.2 @34 qB2:dollar6.2 
+    @41 qB3 dollar6.2 @48 qC1 1. @49 qC2 1. @50 qC3 1. @51qC4 1. @52qC5 1.;
+totb = qB1 + qB2 + qB3;
+pctC = (qC1 + qC2 +qC3 + qC4 + qC5)/5;
+adultyrs = (18498-dob-6574.5)/365.25; 
+run;
+
+proc print data = answers label;
+label gender = 'Subject Gender'
+      adultyrs = 'Years as Adult'
+	  totB = 'Total Balance'
+	  pctC = 'Percent Yes';
+var gender adultyrs totB pctC;
+format adultyrs 8. totB dollar7.2 pctC percent6.;
+id subjID;
+run;
+
+Title Problem 1 B;
+
+data _null_;
+infile Prob1;
+file 'C:\LocalData\PS3Prob1Bout.txt';
+input subjID $1-7 gender $9 @11 dob mmddyy10. qA1 $22 qA2 $23 qA3 $24 qA4 $24 @27 qB1 dollar6.2 @34 qB2:dollar6.2 
+    @41 qB3 dollar6.2 @48 qC1 1. @49 qC2 1. @50 qC3 1. @51qC4 1. @52qC5 1.;
+totb = qB1 + qB2 + qB3;
+pctC = (qC1 + qC2 +qC3 + qC4 + qC5)/5;
+adultyrs = (18498-dob-6574.5)/365.25;
+put @1 subjID $7. @9 gender $1. @ 11 adultyrs 8. @20 totB dollar7.2 @28 pctC percent6.;
+run;
+
+Title Problem 1 C;
+
+
+data finaldata;
+set rawdata.PS3Prob1C;
+file 'C:\LocalData\PS3Prob1Cout.txt';
+totb = qB1 + qB2 + qB3;
+pctC = (qC1 + qC2 +qC3 + qC4 + qC5)/5;
+adultyrs = (18498-dob-6574.5)/365.25;
+put @1 subjID $7. @9 gender $1. @ 11 adultyrs 8. @20 totB dollar7.2 @28 pctC percent6.;
+run;
+
+
+Title Problem 2;
+
+data prob2;
+infile Prob2;
+input ID $ Gender $ DOB mmddyy10. Height  Weight ;
+run;
+
+proc print;
+run;
+
+proc print data = prob2;
+format DOB date9.;
+run;
+
+proc contents data = prob2;
+run;
+
+* New data set with format statement in data step;
+
+data prob2_a;
+infile Prob2;
+input ID $ Gender $ DOB mmddyy10. Height Weight;
+format DOB date9.;
+run;
+
+proc contents data = prob2_a;
+run;
+
+*Result: a Format column has been added to the Variables and Attributes Table;
+
+
+
+Title Problem 3;
+*Create permanent data set in library rawdata;
+
+data rawdata.prob3;
+infile Prob3;
+input Age Gender $ q1 1. q2 1. q3 1. q4 1. q5 1.;
+run;
+
+proc means data = rawdata.prob3;
+var age;
+run;
+
+proc freq data = rawdata.prob3;
+tables q1 q2 q3 q4 q5 / nocum nopercent;
+run;
+
+data rawdata.prob3_b;
+set rawdata.prob3;
+file 'C:\LocalData\Prob3.txt';
+if q5 = '3' and gender = 'F' then put age = gender =  response = q1-q5;
+run;
+
+
+Title Problem 4;
+
+data prob4;
+set rawdata.PS3Prob4;
+run;
+
+proc print;
+run;
+
+proc format;
+value age
+    low-29 = 'Under 30'
+	30 - 49 = 'Between 30 - under 50'
+	50- 69 = 'Between 50 - under 70'
+	70- high = 'Over 70';
+value $party
+    'L' = 'Left'
+	'R' = 'Right'
+	'C' = 'Center'
+	'I' = 'Independent'
+	' ' = 'Not recorded'
+	other = 'Other';
+value likert
+    1 = 'Strongly Disagree'
+    2  = 'Disagree'
+    3  = 'No Opinion'
+    4  = 'Agree'
+    5 = 'Strongly Agree';
+run;
+
+proc print data = prob4 label;
+label q1= 'Congressman X is doing a good job.'
+      q2= 'Institution Y is doing a good job.'
+	  q3= 'Plan Z is the correct solution for Issue A.'
+	  q4= 'The country is on track regarding issue B.';
+format age age. party $party. q1-q4 likert.; 
+run;
+
+
+* Problem 4_B;
+data prob4_b;
+set rawdata.PS3Prob4;
+run;
+
+proc format;
+value age
+    low-29 = 'Under 30'
+	30 - 49 = 'Between 30 - Under 50'
+	50- 69 = 'Between 50 - Under 70'
+	70- high = 'Over 70';
+value $crudeparty
+    'L' = 'Left'
+	'R' = 'Right'
+	'C', 'I', other = 'Other'
+	' ' = 'Not recorded';
+value crudelikert
+   1, 2 = 'General Disagreement'
+   3 = 'No Opinion'
+   4 = ' General Agreement';
+run;
+
+proc freq;
+format q1 q2 q3 q4 crudelikert.;
+format party $crudeparty.;
+tables party q1 q2 q3 q4/ nocum nopercent;
+run;
+
+
+Title Problem 5_A;
+
+data bikes;
+set rawdata.bicycles;
+run;
+
+data Mountain_USA Road_France;
+set bikes;
+if country = 'USA' and model = 'Mountain Bike' then output Mountain_USA;
+if country = 'France' and model = 'Road Bike' then output Road_France;
+run;
+
+proc print data = Mountain_USA;
+run;
+
+proc print data = Road_France;
+run;
+
+Title Problem 5_B;
+
+data markup;
+input manuf : $10. Markup;
+datalines;
+Cannondale 1.05
+Trek 1.07
+;
+run;
+
+data markup_prices;
+merge markup rawdata.bicycles;
+by manuf;
+newtotal = totalsales * markup;
+run;
+
+proc print data = markup_prices;
+run;
+
+
+Title Problem 6_A;
+
+data inventory;
+set rawdata.inventory;
+run;
+
+proc print data = inventory;
+run;
+
+data newproducts;
+set rawdata.newproducts;
+run;
+
+proc print data = newproducts;
+run;
+
+data purchase;
+set rawdata.purchase;
+run;
+
+proc print data = purchase;
+run;
+
+proc sort data = inventory;
+by model;
+run;
+
+proc sort data = newproducts;
+by model;
+run;
+
+data updated;
+set inventory newproducts;
+by model;
+run;
+
+proc print data = updated;
+run;
+
+Title Problem 6_B;
+
+proc sort data = purchase;
+by model;
+run;
+
+proc sort data = inventory;
+by model;
+run;
+
+
+
+data pur_price unpurchased(drop = CustNumber Quantity totcost);
+merge purchase(in = p) inventory( in =i);
+by model;
+totcost = quantity * price;
+if (p and i) then output pur_price;
+if (not p) and i then output unpurchased;
+run;
+
+proc print data = pur_price;
+run;
+
+proc print data = unpurchased;
+run;
+
+
+Title Problem 6_C;
+
+data changes;
+input Model : $8. price;
+datalines;
+M567 25.95
+X999 35.99
+;
+run;
+
+proc print data = changes;
+run;
+
+proc print data = inventory;
+run;
+
+data newprices;
+update inventory changes;
+by model;
+run;
+
+proc print data = newprices;
+run;
+
+Title Problem 7;
+
+data monthsales;
+set rawdata.monthsales;
+run;
+
+proc print data = monthsales;
+run;
+
+data rawdata.newsales;
+retain sumsales 0;
+set monthsales;
+if sales > . then sumsales = sales + sumsales;
+run;
+
+proc print data = rawdata.newsales;
+run;
